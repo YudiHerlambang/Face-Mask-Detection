@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Face Mask Detection</title>
+</head>
+<body>
+    <h1>Upload Image for Mask Detection</h1>
+    <form id="uploadForm" enctype="multipart/form-data">
+        <input type="file" id="image" name="image" accept="image/*" required />
+        <button type="submit">Detect</button>
+    </form>
+    <div id="result"></div>
+
+    <script>
+        document.getElementById('uploadForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const formData = new FormData();
+            const imageFile = document.getElementById('image').files[0];
+            formData.append("image", imageFile);
+
+            const res = await fetch('/predict', {
+                method: 'POST',
+                body: formData
+            });
+
+            const result = await res.json();
+            document.getElementById('result').innerHTML = 
+                result.length > 0 ? 
+                `Result: ${result[0].label} (Confidence: ${(result[0].confidence * 100).toFixed(2)}%)`
+                : "No face detected.";
+        };
+    </script>
+</body>
+</html>
