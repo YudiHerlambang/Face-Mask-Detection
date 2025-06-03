@@ -14,20 +14,33 @@
     <script>
         document.getElementById('uploadForm').onsubmit = async (e) => {
             e.preventDefault();
+
             const formData = new FormData();
             const imageFile = document.getElementById('image').files[0];
             formData.append("image", imageFile);
 
-            const res = await fetch('/predict', {
-                method: 'POST',
-                body: formData
-            });
+            try {
+                const res = await fetch('/predict', {
+                    method: 'POST',
+                    body: formData
+                });
 
-            const result = await res.json();
-            document.getElementById('result').innerHTML = 
-                result.length > 0 ? 
-                `Result: ${result[0].label} (Confidence: ${(result[0].confidence * 100).toFixed(2)}%)`
-                : "No face detected.";
+                if (!res.ok) {
+                    document.getElementById('result').textContent = `Error: ${res.status} ${res.statusText}`;
+                    return;
+                }
+
+                const result = await res.json();
+
+                if (Array.isArray(result) && result.length > 0) {
+                    document.getElementById('result').textContent =
+                        `Result: ${result[0].label} (Confidence: ${(result[0].confidence * 100).toFixed(2)}%)`;
+                } else {
+                    document.getElementById('result').textContent = "No face detected.";
+                }
+            } catch (error) {
+                document.getElementById('result').textContent = `Request failed: ${error}`;
+            }
         };
     </script>
 </body>

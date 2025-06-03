@@ -26,11 +26,11 @@ def index():
 @app.route("/predict", methods=["POST"])
 def predict_mask():
     if "image" not in request.files:
-        return jsonify({"error": "No image part in the request"}), 400
+        return jsonify({"error": "Tidak ada gambar yang dikirim"}), 400
 
     file = request.files["image"]
     if file.filename == "":
-        return jsonify({"error": "No selected file"}), 400
+        return jsonify({"error": "Tidak ada file yang dipilih"}), 400
 
     img_bytes = file.read()
     npimg = np.frombuffer(img_bytes, np.uint8)
@@ -41,7 +41,7 @@ def predict_mask():
     faceNet.setInput(blob)
     detections = faceNet.forward()
 
-    # Ambil deteksi wajah dengan confidence tertinggi
+    # Ambil deteksi wajah dengan tingkat keyakinan tertinggi
     max_conf_idx = -1
     max_conf = 0
     for i in range(detections.shape[2]):
@@ -70,7 +70,7 @@ def predict_mask():
     face = np.expand_dims(face, axis=0)
 
     (mask, withoutMask) = maskNet.predict(face)[0]
-    label = "Mask" if mask > withoutMask else "No Mask"
+    label = "Menggunakan Masker" if mask > withoutMask else "Tidak Menggunakan Masker"
     confidence_mask = max(mask, withoutMask)
 
     results = [{
