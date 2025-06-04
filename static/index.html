@@ -25,6 +25,11 @@
                     <a href="#detection" 
                        class="px-3 py-2 rounded text-gray-700 hover:bg-blue-200 hover:text-blue-800 transition-colors duration-300"
                        :class="{ 'bg-blue-400 text-white': window.location.hash === '#detection' }">Detection</a>
+                    <a href="static/mask_detection.html" 
+                       class="px-3 py-2 rounded text-gray-700 hover:bg-blue-200 hover:text-blue-800 transition-colors duration-300"
+                       :class="{ 'bg-blue-400 text-white': window.location.pathname.endsWith('static/mask_detection.html') }">
+                       Video Deteksi Masker
+                    </a>
                     <a href="#profile" 
                        class="px-3 py-2 rounded text-gray-700 hover:bg-blue-200 hover:text-blue-800 transition-colors duration-300"
                        :class="{ 'bg-blue-400 text-white': window.location.hash === '#profile' }">Profile</a>
