@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en" x-data="{ darkMode: false, sidebarOpen: true }" :class="{ 'dark': darkMode }">
+<head>
+    <meta charset="UTF-8" />
+    <title>Face Mask Detection - Snapshot</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+</head>
+<body class="min-h-screen flex bg-white text-black dark:bg-gray-900 dark:text-gray-100">
+    <!-- Sidebar -->
+    <div :class="sidebarOpen ? 'w-64' : 'w-16'" class="transition-all duration-300 bg-gray-100 dark:bg-gray-800 p-4 shadow-md flex flex-col">
+        <button @click="sidebarOpen = !sidebarOpen" class="mb-4 p-2 rounded self-start">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-700 dark:text-gray-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+        </button>
+        <template x-if="sidebarOpen">
+            <div>
+                <h2 class="text-xl font-bold text-gray-800 dark:text-gray-100">Dashboard</h2>
+                <nav class="flex flex-col space-y-2 mt-4">
+                    <a href="#home" 
+                       class="px-3 py-2 rounded text-gray-700 dark:text-gray-300 hover:bg-blue-200 hover:text-blue-800 dark:hover:bg-blue-600 dark:hover:text-white transition-colors duration-300"
+                       :class="{ 'bg-blue-400 text-white': window.location.hash === '#home' }">Home</a>
+                    <a href="#detection" 
+                       class="px-3 py-2 rounded text-gray-700 dark:text-gray-300 hover:bg-blue-200 hover:text-blue-800 dark:hover:bg-blue-600 dark:hover:text-white transition-colors duration-300"
+                       :class="{ 'bg-blue-400 text-white': window.location.hash === '#detection' }">Detection</a>
+                    <a href="#video" 
+                       class="px-3 py-2 rounded text-gray-700 dark:text-gray-300 hover:bg-blue-200 hover:text-blue-800 dark:hover:bg-blue-600 dark:hover:text-white transition-colors duration-300"
+                       :class="{ 'bg-blue-400 text-white': window.location.hash === '#video' }">Video Deteksi Masker</a>
+                    <a href="#profile" 
+                       class="px-3 py-2 rounded text-gray-700 dark:text-gray-300 hover:bg-blue-200 hover:text-blue-800 dark:hover:bg-blue-600 dark:hover:text-white transition-colors duration-300"
+                       :class="{ 'bg-blue-400 text-white': window.location.hash === '#profile' }">Profile</a>
+                </nav>
+            </div>
+        </template>
+    </div>
+
+    <!-- Main content -->
+    <div class="flex-1 flex flex-col bg-white dark:bg-gray-900">
+        <header class="flex items-center justify-between bg-blue-400 px-6 py-4 shadow dark:bg-blue-600">
+            <div class="flex items-center space-x-4">
+                <h1 class="text-xl font-semibold text-white">Face Mask Detection</h1>
+            </div>
+            <div class="flex items-center space-x-4">
+                <button @click="darkMode = !darkMode" class="text-white">
+                    <svg x-show="!darkMode" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m8.66-12.34l-.71.71M4.05 19.95l-.71.71m16.97-.71l-.71-.71M4.05 4.05l-.71-.71M21 12h1M2 12H1" />
+                    </svg>
+                    <svg x-show="darkMode" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.293 17.293A8 8 0 018.707 8.707a8 8 0 108.586 8.586z" />
+                    </svg>
+                </button>
+                <div class="flex items-center space-x-2">
+                    <img src="https://i.pravatar.cc/40" alt="User" class="rounded-full w-8 h-8" />
+                    <span class="text-white">Yudi</span>
+                </div>
+            </div>
+        </header>
+
+        <main class="p-6 flex flex-col items-center bg-white dark:bg-gray-900 space-y-6">
+            <!-- Video stream -->
+            <video id="video" autoplay playsinline muted
+                class="rounded-lg shadow-lg max-w-full w-96 border-4 border-blue-400"
+                ></video>
+
+            <!-- Tombol snapshot -->
+            <button id="snapshotBtn" class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-6 rounded shadow">
+                Ambil Gambar
+            </button>
+
+            <!-- Preview hasil snapshot -->
+            <div id="preview" class="mt-6"></div>
+
+            <!-- Hasil deteksi -->
+            <div id="result" class="mt-4 text-center text-gray-700 dark:text-gray-300 text-lg font-semibold"></div>
+        </main>
+    </div>
+
+<script>
+    const video = document.getElementById('video');
+    const snapshotBtn = document.getElementById('snapshotBtn');
+    const previewDiv = document.getElementById('preview');
+    const resultDiv = document.getElementById('result');
+
+    // Start kamera langsung saat halaman dimuat
+    async function startCamera() {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+            video.srcObject = stream;
+        } catch (err) {
+            resultDiv.textContent = "Gagal mengakses kamera: " + err.message;
+        }
+    }
+    startCamera();
+
+    snapshotBtn.addEventListener('click', () => {
+        // Buat canvas untuk ambil snapshot
+        const canvas = document.createElement('canvas');
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+        // Tampilkan gambar snapshot di preview
+        const dataUrl = canvas.toDataURL('image/png');
+        previewDiv.innerHTML = `<img src="${dataUrl}" alt="Snapshot" class="max-w-sm rounded-lg shadow" />`;
+
+        // Dummy deteksi masker (ganti dengan API/fungsi deteksi sesungguhnya)
+        // Contoh: jika ada deteksi masker atau tidak
+        // Di sini kita buat random untuk demo
+        const detectedMask = Math.random() > 0.5;
+        if (detectedMask) {
+            resultDiv.textContent = "Masker terdeteksi ✅";
+            resultDiv.classList.remove('text-red-600');
+            resultDiv.classList.add('text-green-600');
+        } else {
+            resultDiv.textContent = "Masker tidak terdeteksi ❌";
+            resultDiv.classList.remove('text-green-600');
+            resultDiv.classList.add('text-red-600');
+        }
+    });
+</script>
+</body>
+</html>
